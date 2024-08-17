@@ -8,8 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.com.gsoft.product.constant.PathConstant;
 import vn.com.gsoft.product.model.dto.GiaoDichHangHoaReq;
+import vn.com.gsoft.product.model.dto.HangHoaRep;
 import vn.com.gsoft.product.response.BaseResponse;
-import vn.com.gsoft.product.service.GiaoDichHangHoaService;
+import vn.com.gsoft.product.service.HangHoaService;
 import vn.com.gsoft.product.util.system.ResponseUtils;
 
 @Slf4j
@@ -17,11 +18,11 @@ import vn.com.gsoft.product.util.system.ResponseUtils;
 @RequestMapping("/tra-cuu")
 public class ProductController {
     @Autowired
-    private GiaoDichHangHoaService service;
+    private HangHoaService service;
 
     @PostMapping(value = PathConstant.URL_SEARCH_PAGE +"-hang-hoa", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<BaseResponse> searchPageHangHoa(@RequestBody GiaoDichHangHoaReq objReq) throws Exception {
+    public ResponseEntity<BaseResponse> searchPageHangHoa(@RequestBody HangHoaRep objReq) throws Exception {
         return ResponseEntity.ok(ResponseUtils.ok(service.searchPageHangHoa(objReq)));
     }
 }
