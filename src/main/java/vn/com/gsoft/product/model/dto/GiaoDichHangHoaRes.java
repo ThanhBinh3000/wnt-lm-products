@@ -11,12 +11,7 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class GiaoDichHangHoaRes extends BaseRequest {
-    private String tenThuoc;
-    private String tenNhomThuoc;
     private String tenDonVi;
-    private String tenDuocLy;
-    private String tenNganhHang;
-    private String tenHoatChat;
 
     private BigDecimal soLieuThiTruong;
     private BigDecimal soLieuCoSo;
@@ -25,19 +20,14 @@ public class GiaoDichHangHoaRes extends BaseRequest {
     private BigDecimal giaNhapMax;
     private BigDecimal giaNhapMin;
 
-    public GiaoDichHangHoaRes(String tenThuoc, String tenNhomThuoc, String tenDonVi,
-                         String tenDuocLy, String tenNganhHang, String tenHoatChat,
+    public GiaoDichHangHoaRes(String tenDonVi,
                          BigDecimal soLieuThiTruong, BigDecimal soLieuCoSo,
                               BigDecimal giaBanMax, BigDecimal giaBanMin,
                               BigDecimal giaNhapMax, BigDecimal giaNhapMin
 
     ) {
-        this.tenThuoc = tenThuoc;
-        this.tenNhomThuoc = tenNhomThuoc;
+
         this.tenDonVi = tenDonVi;
-        this.tenDuocLy = tenDuocLy;
-        this.tenNganhHang = tenNganhHang;
-        this.tenHoatChat = tenHoatChat;
         this.soLieuThiTruong = soLieuThiTruong;
         this.soLieuCoSo = soLieuCoSo;
         this.giaBanMax = giaBanMax;

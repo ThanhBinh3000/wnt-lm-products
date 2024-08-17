@@ -12,9 +12,11 @@ import vn.com.gsoft.product.entity.GiaoDichHangHoa;
 import vn.com.gsoft.product.model.dto.GiaoDichHangHoaData;
 import vn.com.gsoft.product.model.dto.GiaoDichHangHoaReq;
 import vn.com.gsoft.product.model.dto.GiaoDichHangHoaRes;
+import vn.com.gsoft.product.model.dto.HangHoaRep;
 import vn.com.gsoft.product.service.RedisListService;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,90 +29,44 @@ public class RedisListServiceImpl implements RedisListService {
     private ObjectMapper objectMapper;
 
     @Override
-    // Lấy toàn bộ danh sách giá trị
-    public List<Object> getGiaoDichHangHoaValues(GiaoDichHangHoaReq req) {
-        var fromDate = Double.parseDouble(new SimpleDateFormat("yyyyMMdd").format(req.getFromDate()));
-        var toDate = Double.parseDouble(new SimpleDateFormat("yyyyMMdd").format(req.getToDate()));
-        Set<Object> redisResults = redisTemplate.opsForZSet().rangeByScore("transactions", fromDate, toDate);
-        Set<GiaoDichHangHoaData> results = new HashSet<>();
-
-        if (redisResults != null) {
-            for (Object json : redisResults) {
-                GiaoDichHangHoaData data = objectMapper.convertValue(json, GiaoDichHangHoaData.class);
-                results.add(data);
-            }
-        }
-        return Arrays.asList(results.toArray());
+    public void pushDataRedis(List<GiaoDichHangHoa> giaoDichHangHoas) {
+        giaoDichHangHoas.forEach(this::saveTransaction);
     }
-    @Override
-    public void pushDataRedis(List<GiaoDichHangHoa> giaoDichHangHoas){
-        giaoDichHangHoas.forEach(x->{
-           saveTransaction(x.getId(), x);
-        });
-    }
-   @Override
-    public List<GiaoDichHangHoaData> getTransactionDetails(GiaoDichHangHoaReq req) {
-       var fromDate = Double.parseDouble(new SimpleDateFormat("yyyyMMdd").format(req.getFromDate()));
-       var toDate = Double.parseDouble(new SimpleDateFormat("yyyyMMdd").format(req.getToDate()));
-       Set<Object> transactionIds = redisTemplate.opsForZSet().rangeByScore(CachingConstant.GIAO_DICH_HANG_HOA_THEO_NGAY, fromDate, toDate);
 
-       return transactionIds.stream()
-                .map(id -> {
-                    Map<Object, Object> data = redisTemplate.opsForHash().entries(CachingConstant.GIAO_DICH_HANG_HOA + id);
-                    return mapToGiaoDichHangHoaData(data);
-                })
+    public List<GiaoDichHangHoa> getTransactionsByDateAndThuocIds(HangHoaRep req, List<Long> thuocIds) throws ParseException {
+        double startTimestamp = req.getFromDate().getTime() / 1000.0;
+        double endTimestamp = req.getToDate().getTime() / 1000.0;
+
+        // 2. Lấy các transactionId theo ngày
+        Set<Object> transactionIdsByDate = redisTemplate.opsForZSet().rangeByScore(CachingConstant.GIAO_DICH_HANG_HOA_THEO_NGAY, startTimestamp, endTimestamp);
+        Set<Object> transactionIdsByThuoc = thuocIds.stream()
+                .flatMap(thuocId -> redisTemplate.opsForSet().members(CachingConstant.GIAO_DICH_HANG_HOA_THEO_THUOC_ID + ":" + thuocId).stream())
+                .collect(Collectors.toSet());
+        transactionIdsByDate.retainAll(transactionIdsByThuoc);
+
+        return transactionIdsByDate.stream()
+                .map(id -> redisTemplate.opsForHash().entries(CachingConstant.GIAO_DICH_HANG_HOA + ":" + id))
+                .map(data -> objectMapper.convertValue(data, GiaoDichHangHoa.class))
                 .collect(Collectors.toList());
     }
 
-    private GiaoDichHangHoaData mapToGiaoDichHangHoaData(Map<Object, Object> data) {
-        GiaoDichHangHoaData giaoDich = new GiaoDichHangHoaData();
-        giaoDich.setId(Long.parseLong((String) data.get("id")));
-        giaoDich.setThuocId(Long.parseLong((String) data.get("thuocId")));
-        giaoDich.setTenThuoc((String) data.get("tenThuoc"));
-        giaoDich.setNhomThuocId(Integer.parseInt((String) data.get("nhomThuocId")));
-        giaoDich.setTenNhomThuoc((String) data.get("tenNhomThuoc"));
-        giaoDich.setNhomDuocLyId(Integer.parseInt((String) data.get("nhomDuocLyId")));
-        giaoDich.setTenNhomDuocLy((String) data.get("tenNhomDuocLy"));
-        giaoDich.setSoLuong(new BigDecimal((String) data.get("soLuong")));
-        giaoDich.setGiaNhap(new BigDecimal((String) data.get("giaNhap")));
-        giaoDich.setGiaBan(new BigDecimal((String) data.get("giaBan")));
-        giaoDich.setTenDonVi((String) data.get("tenDonVi"));
-        giaoDich.setTenHoatChat((String) data.get("tenHoatChat"));
-        giaoDich.setNgayGiaoDich(new Date((String) data.get("ngayGiaoDich")));
-        giaoDich.setDongBang(Boolean.parseBoolean((String) data.get("dongBang")));
-        giaoDich.setLoaiGiaoDich(Integer.parseInt((String) data.get("LoaiGiaoDich")));
-        giaoDich.setMaCoSo((String) data.get("maCoSo"));
-        giaoDich.setSoLuongQuyDoi(new BigDecimal((String) data.get("soLuongQuyDoi")));
-        return giaoDich;
+    private void saveTransaction(GiaoDichHangHoa data) {
+        double timestamp = data.getNgayGiaoDich().getTime() / 1000.0;
+        // 1. Lưu thông tin giao dịch vào Redis Hash
+        Map<String, Object> transactionData = new HashMap<>();
+        transactionData.put("id", data.getId());
+        transactionData.put("thuocId", data.getThuocId());
+        transactionData.put("ngayGiaoDich", data.getNgayGiaoDich().getTime()); // Unix timestamp
+        transactionData.put("soLuong", data.getSoLuong());
+        transactionData.put("giaNhap", data.getGiaNhap());
+        transactionData.put("giaBan", data.getGiaBan());
+        transactionData.put("tenDonVi", data.getTenDonVi());
+        transactionData.put("maCoSo", data.getMaCoSo());
+
+        redisTemplate.opsForHash().putAll(CachingConstant.GIAO_DICH_HANG_HOA+":" + data.getId(), transactionData);
+
+        redisTemplate.opsForZSet().add(CachingConstant.GIAO_DICH_HANG_HOA_THEO_NGAY, data.getId(), timestamp);
+
+        redisTemplate.opsForSet().add(CachingConstant.GIAO_DICH_HANG_HOA_THEO_THUOC_ID + ":" + data.getThuocId(), data.getId());
     }
-
-    private void saveTransaction(Long id, GiaoDichHangHoa data) {
-        var timestamp = Double.parseDouble(new SimpleDateFormat("yyyyMMdd").format(data.getNgayGiaoDich()));
-        String hashKey = "transaction-production:" + id;
-
-        // Lưu thông tin chi tiết vào Redis Hash
-        Map<String, String> hash = new HashMap<>();
-        hash.put("thuocId", String.valueOf(data.getThuocId()));
-        hash.put("tenThuoc", data.getTenThuoc());
-        hash.put("nhomThuocId", String.valueOf(data.getNhomThuocId()));
-        hash.put("tenNhomThuoc", data.getTenNhomThuoc());
-        hash.put("nhomDuocLyId", String.valueOf(data.getNhomDuocLyId()));
-        hash.put("tenNhomDuocLy", data.getTenNhomDuocLy());
-        hash.put("soLuong", data.getSoLuong().toString());
-        hash.put("giaNhap", data.getGiaNhap().toString());
-        hash.put("giaBan", data.getGiaBan().toString());
-        hash.put("tenDonVi", data.getTenDonVi());
-        hash.put("tenHoatChat", data.getTenHoatChat());
-        hash.put("ngayGiaoDich", data.getNgayGiaoDich().toString());
-        hash.put("maCoSo", data.getMaCoSo());
-
-        redisTemplate.opsForHash().putAll(hashKey, hash);
-
-        // Thêm vào Sorted Sets
-        redisTemplate.opsForZSet().add("transaction-production:date:" + data.getId(), id, timestamp);
-        redisTemplate.opsForZSet().add("transaction-production:drug:" + data.getThuocId(), id, 0);
-        redisTemplate.opsForZSet().add("transaction-production:group:" + data.getNhomThuocId(), id, 0);
-        redisTemplate.opsForZSet().add("transaction-production:drugGroup:" + data.getNhomDuocLyId(), id, 0);
-    }
-
 }
