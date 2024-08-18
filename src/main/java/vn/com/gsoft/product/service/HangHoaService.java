@@ -11,8 +11,4 @@ public interface HangHoaService extends BaseService<HangHoa, HangHoaRep, Long> {
     Page<HangHoa> searchPageHangHoa(HangHoaRep req) throws Exception;
 
     void pushTransactionData();
-
-    void pushProductData();
-
-    List<HangHoaCache> getProductData();
 }

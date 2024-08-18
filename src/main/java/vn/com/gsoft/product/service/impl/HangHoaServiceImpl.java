@@ -126,18 +126,4 @@ public class HangHoaServiceImpl extends BaseServiceImpl<HangHoa, HangHoaRep, Lon
 
         redisListService.pushTransactionDataRedis(data.stream().toList());
     }
-
-    @Override
-    public void pushProductData() {
-        HangHoaRep rep = new HangHoaRep();
-        var data = hdrRepo.searchListHangHoa();
-        redisListService.pushProductDataRedis(DataUtils.convertList(data, HangHoaCache.class));
-    }
-
-    @Override
-    public List<HangHoaCache> getProductData() {
-        var ids = new ArrayList<Long>();
-        ids.add(9738374L);
-        return redisListService.getHangHoaByIds(ids);
-    }
 }

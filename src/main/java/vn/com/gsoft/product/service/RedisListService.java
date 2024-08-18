@@ -11,8 +11,4 @@ public interface RedisListService {
     void pushTransactionDataRedis(List<GiaoDichHangHoa> giaoDichHangHoas);
 
     List<GiaoDichHangHoa> getTransactionsByDateAndThuocIds(HangHoaRep req, List<Long> thuocIds) throws ParseException;
-
-    void pushProductDataRedis(List<HangHoaCache> hangHoas);
-
-    List<HangHoaCache> getHangHoaByIds(List<Long> ids);
 }
