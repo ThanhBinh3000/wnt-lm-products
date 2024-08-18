@@ -1,11 +1,6 @@
-package vn.com.gsoft.product.model.dto;
+package vn.com.gsoft.product.model.dto.cache;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import lombok.*;
-import vn.com.gsoft.product.entity.BaseEntity;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -15,7 +10,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 
-public class GiaoDichHangHoaData {
+public class GiaoDichHangHoaCache {
     private Long id ;
     private Long thuocId;
     private String tenThuoc;

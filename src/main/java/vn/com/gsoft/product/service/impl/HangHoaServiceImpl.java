@@ -11,7 +11,8 @@ import vn.com.gsoft.product.entity.*;
 import vn.com.gsoft.product.model.dto.GiaoDichHangHoaReq;
 import vn.com.gsoft.product.model.dto.GiaoDichHangHoaRes;
 import vn.com.gsoft.product.model.dto.HangHoaRep;
-import vn.com.gsoft.product.model.dto.HangHoaRes;
+import vn.com.gsoft.product.model.dto.cache.HangHoaCache;
+import vn.com.gsoft.product.model.dto.elastichsearch.HangHoaES;
 import vn.com.gsoft.product.model.system.Profile;
 import vn.com.gsoft.product.repository.*;
 import vn.com.gsoft.product.service.HangHoaService;
@@ -27,13 +28,19 @@ import java.util.stream.Collectors;
 public class HangHoaServiceImpl extends BaseServiceImpl<HangHoa, HangHoaRep, Long> implements HangHoaService {
 
 
+    @Autowired
     private HangHoaRepository hdrRepo;
+    @Autowired
     private GiaoDichHangHoaRepository giaoDichHangHoaRepository;
     @Autowired
     private RedisListService redisListService;
+    @Autowired
+    private HangHoaESRepository hangHoaESRepository;
 
     @Autowired
-    public HangHoaServiceImpl(HangHoaRepository hdrRepo, GiaoDichHangHoaRepository hangHoaRepository
+    public HangHoaServiceImpl(HangHoaRepository hdrRepo,
+                              GiaoDichHangHoaRepository hangHoaRepository,
+                              HangHoaESRepository hoaESRepository
                                 ) {
         super(hdrRepo);
         this.hdrRepo = hdrRepo;
@@ -128,13 +135,25 @@ public class HangHoaServiceImpl extends BaseServiceImpl<HangHoa, HangHoaRep, Lon
     public void pushProductData() {
         HangHoaRep rep = new HangHoaRep();
         var data = hdrRepo.searchListHangHoa();
-        redisListService.pushProductDataRedis(DataUtils.convertList(data, HangHoaRes.class));
+        redisListService.pushProductDataRedis(DataUtils.convertList(data, HangHoaCache.class));
     }
 
     @Override
-    public List<HangHoaRes> getProductData() {
+    public List<HangHoaCache> getProductData() {
         var ids = new ArrayList<Long>();
         ids.add(9738374L);
         return redisListService.getHangHoaByIds(ids);
     }
+
+    public HangHoaES saveProduct() {
+        HangHoa hangHoa = hdrRepo.findByThuocId(9738374L);
+        HangHoaES hangHoaES = new HangHoaES();
+        hangHoaES.setId(hangHoa.getThuocId().toString());
+        hangHoaES.setName(hangHoa.getTenThuoc());
+        return hangHoaESRepository.save(hangHoaES);
+    }
+
+//    public Iterable<Product> findAllProducts() {
+//        return productRepository.findAll();
+//    }
 }

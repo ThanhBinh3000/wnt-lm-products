@@ -1,21 +1,16 @@
 package vn.com.gsoft.product.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.lettuce.core.api.sync.RedisCommands;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import vn.com.gsoft.product.constant.CachingConstant;
 import vn.com.gsoft.product.entity.GiaoDichHangHoa;
-import vn.com.gsoft.product.entity.HangHoa;
 import vn.com.gsoft.product.model.dto.*;
+import vn.com.gsoft.product.model.dto.cache.HangHoaCache;
 import vn.com.gsoft.product.service.RedisListService;
 
-import java.math.BigDecimal;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -49,15 +44,15 @@ public class RedisListServiceImpl implements RedisListService {
     }
 
     @Override
-    public void pushProductDataRedis(List<HangHoaRes> hangHoas) {
+    public void pushProductDataRedis(List<HangHoaCache> hangHoas) {
            hangHoas.forEach(this::saveProductToRedis);
     }
 
-    public List<HangHoaRes> getHangHoaByIds(List<Long> ids) {
+    public List<HangHoaCache> getHangHoaByIds(List<Long> ids) {
         return ids.stream()
                 .map(id -> {
                     Map<Object, Object> entries = redisTemplate.opsForHash().entries(CachingConstant.HANG_HOA + ":" + id);
-                    return objectMapper.convertValue(entries, HangHoaRes.class);
+                    return objectMapper.convertValue(entries, HangHoaCache.class);
                 })
                 .collect(Collectors.toList());
     }
@@ -82,7 +77,7 @@ public class RedisListServiceImpl implements RedisListService {
         redisTemplate.opsForSet().add(CachingConstant.GIAO_DICH_HANG_HOA_THEO_THUOC_ID + ":" + data.getThuocId(), data.getId());
     }
 
-    private void saveProductToRedis(HangHoaRes data) {
+    private void saveProductToRedis(HangHoaCache data) {
         String key = CachingConstant.HANG_HOA + ":" + data.getThuocId();
         redisTemplate.opsForHash().putAll(key, objectMapper.convertValue(data, Map.class));
     }
