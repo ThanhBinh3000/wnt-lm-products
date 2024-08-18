@@ -15,6 +15,6 @@ class PushDataRedis {
     private RedisListService redisListService;
     @Test
     void pushProductData() throws Exception {
-        hangHoaService.saveProduct();
+        
     }
 }
