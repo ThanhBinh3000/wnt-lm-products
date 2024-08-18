@@ -12,7 +12,6 @@ import vn.com.gsoft.product.model.dto.GiaoDichHangHoaReq;
 import vn.com.gsoft.product.model.dto.GiaoDichHangHoaRes;
 import vn.com.gsoft.product.model.dto.HangHoaRep;
 import vn.com.gsoft.product.model.dto.cache.HangHoaCache;
-import vn.com.gsoft.product.model.dto.elastichsearch.HangHoaES;
 import vn.com.gsoft.product.model.system.Profile;
 import vn.com.gsoft.product.repository.*;
 import vn.com.gsoft.product.service.HangHoaService;
@@ -34,13 +33,10 @@ public class HangHoaServiceImpl extends BaseServiceImpl<HangHoa, HangHoaRep, Lon
     private GiaoDichHangHoaRepository giaoDichHangHoaRepository;
     @Autowired
     private RedisListService redisListService;
-    @Autowired
-    private HangHoaESRepository hangHoaESRepository;
 
     @Autowired
     public HangHoaServiceImpl(HangHoaRepository hdrRepo,
-                              GiaoDichHangHoaRepository hangHoaRepository,
-                              HangHoaESRepository hoaESRepository
+                              GiaoDichHangHoaRepository hangHoaRepository
                                 ) {
         super(hdrRepo);
         this.hdrRepo = hdrRepo;
@@ -144,16 +140,4 @@ public class HangHoaServiceImpl extends BaseServiceImpl<HangHoa, HangHoaRep, Lon
         ids.add(9738374L);
         return redisListService.getHangHoaByIds(ids);
     }
-
-    public HangHoaES saveProduct() {
-        HangHoa hangHoa = hdrRepo.findByThuocId(9738374L);
-        HangHoaES hangHoaES = new HangHoaES();
-        hangHoaES.setId(hangHoa.getThuocId().toString());
-        hangHoaES.setName(hangHoa.getTenThuoc());
-        return hangHoaESRepository.save(hangHoaES);
-    }
-
-//    public Iterable<Product> findAllProducts() {
-//        return productRepository.findAll();
-//    }
 }

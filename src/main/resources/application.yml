@@ -27,8 +27,6 @@ spring:
   jackson:
     time-zone: Asia/Ho_Chi_Minh
     date-format: dd/MM/yyyy HH:mm:ss
-  elasticsearch:
-    uris: http://localhost:9200
 
 # Eureka
 eureka:
