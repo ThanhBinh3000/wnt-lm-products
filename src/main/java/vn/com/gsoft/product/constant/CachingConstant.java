@@ -6,4 +6,5 @@ public class CachingConstant {
     public final static String GIAO_DICH_HANG_HOA = "transaction-production";
     public final static String GIAO_DICH_HANG_HOA_THEO_NGAY = "transaction-production:date";
     public final static String GIAO_DICH_HANG_HOA_THEO_THUOC_ID = "transaction-production:thuoc";
+    public final static String HANG_HOA = "product";
 }

@@ -1,5 +1,6 @@
 package vn.com.gsoft.product.repository;
 
+import jakarta.persistence.Tuple;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -9,6 +10,7 @@ import vn.com.gsoft.product.entity.GiaoDichHangHoa;
 import vn.com.gsoft.product.entity.HangHoa;
 import vn.com.gsoft.product.model.dto.GiaoDichHangHoaReq;
 import vn.com.gsoft.product.model.dto.HangHoaRep;
+import vn.com.gsoft.product.model.dto.HangHoaRes;
 
 import java.util.List;
 
@@ -36,4 +38,12 @@ public interface HangHoaRepository extends BaseRepository<HangHoa, HangHoaRep, L
             + " ORDER BY c.TenThuoc", nativeQuery = true
     )
     List<HangHoa> searchList(@Param("param") HangHoaRep param);
+
+    @Query(value = "SELECT c.ThuocId as thuocId," +
+            " c.TenThuoc AS tenThuoc," +
+            " c.TenDonVi AS tenDonVi," +
+            " c.tenNhomThuoc AS tenNhomThuoc  FROM HangHoa c "
+            + "WHERE 1=1 ", nativeQuery = true
+    )
+    List<Tuple> searchListHangHoa();
 }
