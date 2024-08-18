@@ -6,11 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import vn.com.gsoft.product.entity.GiaoDichHangHoa;
 import vn.com.gsoft.product.entity.HangHoa;
-import vn.com.gsoft.product.model.dto.GiaoDichHangHoaReq;
 import vn.com.gsoft.product.model.dto.HangHoaRep;
-import vn.com.gsoft.product.model.dto.HangHoaRes;
 
 import java.util.List;
 
@@ -46,4 +43,6 @@ public interface HangHoaRepository extends BaseRepository<HangHoa, HangHoaRep, L
             + "WHERE 1=1 ", nativeQuery = true
     )
     List<Tuple> searchListHangHoa();
+
+    HangHoa findByThuocId(long l);
 }

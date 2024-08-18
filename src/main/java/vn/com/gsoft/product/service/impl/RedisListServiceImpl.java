@@ -1,21 +1,16 @@
 package vn.com.gsoft.product.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.lettuce.core.api.sync.RedisCommands;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import vn.com.gsoft.product.constant.CachingConstant;
 import vn.com.gsoft.product.entity.GiaoDichHangHoa;
-import vn.com.gsoft.product.entity.HangHoa;
 import vn.com.gsoft.product.model.dto.*;
+import vn.com.gsoft.product.model.dto.cache.HangHoaCache;
 import vn.com.gsoft.product.service.RedisListService;
 
-import java.math.BigDecimal;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -48,20 +43,6 @@ public class RedisListServiceImpl implements RedisListService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public void pushProductDataRedis(List<HangHoaRes> hangHoas) {
-           hangHoas.forEach(this::saveProductToRedis);
-    }
-
-    public List<HangHoaRes> getHangHoaByIds(List<Long> ids) {
-        return ids.stream()
-                .map(id -> {
-                    Map<Object, Object> entries = redisTemplate.opsForHash().entries(CachingConstant.HANG_HOA + ":" + id);
-                    return objectMapper.convertValue(entries, HangHoaRes.class);
-                })
-                .collect(Collectors.toList());
-    }
-
     private void saveTransaction(GiaoDichHangHoa data) {
         double timestamp = data.getNgayGiaoDich().getTime() / 1000.0;
         // 1. Lưu thông tin giao dịch vào Redis Hash
@@ -80,10 +61,5 @@ public class RedisListServiceImpl implements RedisListService {
         redisTemplate.opsForZSet().add(CachingConstant.GIAO_DICH_HANG_HOA_THEO_NGAY, data.getId(), timestamp);
 
         redisTemplate.opsForSet().add(CachingConstant.GIAO_DICH_HANG_HOA_THEO_THUOC_ID + ":" + data.getThuocId(), data.getId());
-    }
-
-    private void saveProductToRedis(HangHoaRes data) {
-        String key = CachingConstant.HANG_HOA + ":" + data.getThuocId();
-        redisTemplate.opsForHash().putAll(key, objectMapper.convertValue(data, Map.class));
     }
 }

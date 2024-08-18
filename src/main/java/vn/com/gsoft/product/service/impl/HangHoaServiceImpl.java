@@ -11,7 +11,7 @@ import vn.com.gsoft.product.entity.*;
 import vn.com.gsoft.product.model.dto.GiaoDichHangHoaReq;
 import vn.com.gsoft.product.model.dto.GiaoDichHangHoaRes;
 import vn.com.gsoft.product.model.dto.HangHoaRep;
-import vn.com.gsoft.product.model.dto.HangHoaRes;
+import vn.com.gsoft.product.model.dto.cache.HangHoaCache;
 import vn.com.gsoft.product.model.system.Profile;
 import vn.com.gsoft.product.repository.*;
 import vn.com.gsoft.product.service.HangHoaService;
@@ -27,13 +27,16 @@ import java.util.stream.Collectors;
 public class HangHoaServiceImpl extends BaseServiceImpl<HangHoa, HangHoaRep, Long> implements HangHoaService {
 
 
+    @Autowired
     private HangHoaRepository hdrRepo;
+    @Autowired
     private GiaoDichHangHoaRepository giaoDichHangHoaRepository;
     @Autowired
     private RedisListService redisListService;
 
     @Autowired
-    public HangHoaServiceImpl(HangHoaRepository hdrRepo, GiaoDichHangHoaRepository hangHoaRepository
+    public HangHoaServiceImpl(HangHoaRepository hdrRepo,
+                              GiaoDichHangHoaRepository hangHoaRepository
                                 ) {
         super(hdrRepo);
         this.hdrRepo = hdrRepo;
@@ -122,19 +125,5 @@ public class HangHoaServiceImpl extends BaseServiceImpl<HangHoa, HangHoaRep, Lon
         var data = giaoDichHangHoaRepository.searchList(req);
 
         redisListService.pushTransactionDataRedis(data.stream().toList());
-    }
-
-    @Override
-    public void pushProductData() {
-        HangHoaRep rep = new HangHoaRep();
-        var data = hdrRepo.searchListHangHoa();
-        redisListService.pushProductDataRedis(DataUtils.convertList(data, HangHoaRes.class));
-    }
-
-    @Override
-    public List<HangHoaRes> getProductData() {
-        var ids = new ArrayList<Long>();
-        ids.add(9738374L);
-        return redisListService.getHangHoaByIds(ids);
     }
 }
